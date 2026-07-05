@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chiang Mai Runway — Retirement Projector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#10162B;
+  --panel:#182036;
+  --panel2:#1E2947;
+  --line:#2A3557;
+  --ink:#EDEAF7;
+  --muted:#8B93B5;
+  --lantern:#F2B441;
+  --lantern-dim:#B98A2F;
+  --safe:#53C79E;
+  --tight:#E8A64E;
+  --short:#E86A6A;
+  --mono:'IBM Plex Mono',monospace;
+  --disp:'Space Grotesk',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--night);color:var(--ink);font-family:var(--disp);font-size:15px;line-height:1.5;padding:16px;max-width:760px;margin:0 auto}
+header{margin:8px 0 20px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--lantern)}
+h1{font-size:26px;font-weight:700;letter-spacing:-.01em;margin-top:4px}
+h1 .thin{color:var(--muted);font-weight:400}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+
+#verdict{position:relative;border:1px solid var(--line);border-radius:14px;padding:20px 18px 18px;margin-bottom:18px;background:
+  radial-gradient(120% 90% at 50% -20%, rgba(242,180,65,.14), transparent 60%), var(--panel);overflow:hidden;min-height:120px}
+#verdict .vlabel{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+#verdict .vword{font-size:34px;font-weight:700;letter-spacing:-.02em;margin:2px 0 6px}
+#verdict .vword.safe{color:var(--safe)}
+#verdict .vword.tight{color:var(--tight)}
+#verdict .vword.short{color:var(--short)}
+#verdict .vdetail{color:var(--muted);font-size:13.5px;max-width:82%}
+#verdict .vdetail b{color:var(--ink);font-family:var(--mono);font-weight:600}
+.lantern{position:absolute;right:18px;font-size:26px;transition:bottom 1s cubic-bezier(.22,1,.36,1);filter:drop-shadow(0 0 10px rgba(242,180,65,.55))}
+@media (prefers-reduced-motion: reduce){.lantern{transition:none}}
+
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:var(--mono);font-size:19px;font-weight:600;margin-top:3px}
+.stat .u{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.stat.hero{border-color:var(--lantern-dim)}
+.stat.hero .v{color:var(--lantern)}
+
+.chartwrap{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:18px}
+.chartwrap .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;gap:14px;flex-wrap:wrap}
+.legend{display:inline-flex;align-items:center;gap:5px}
+.dot{width:8px;height:8px;border-radius:50%}
+canvas{width:100%;height:200px;display:block}
+
+section.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+section.card h2{font-size:13px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--lantern);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.row label{font-size:13.5px;color:var(--ink)}
+.row output{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--lantern)}
+input[type=range]{width:100%;margin:6px 0 14px;accent-color:var(--lantern);height:22px}
+.hint{font-size:12px;color:var(--muted);margin-top:-8px;margin-bottom:10px}
+.note{font-size:12.5px;color:var(--muted);border-left:2px solid var(--lantern-dim);padding-left:10px;margin-top:10px}
+.note b{color:var(--ink)}
+footer{text-align:center;color:var(--muted);font-size:11.5px;font-family:var(--mono);margin:20px 0 8px}
+button{font-family:var(--mono);cursor:pointer;border-radius:8px}
+button.reset{background:none;border:1px solid var(--line);color:var(--muted);font-size:11px;padding:6px 12px}
+button.reset:hover{color:var(--ink);border-color:var(--muted)}
+button.add{background:rgba(242,180,65,.12);border:1px solid var(--lantern-dim);color:var(--lantern);font-size:11px;padding:5px 12px;letter-spacing:.06em}
+button.del{background:none;border:none;color:var(--muted);font-size:15px;padding:2px 6px;line-height:1}
+button.del:hover{color:var(--short)}
+
+/* stream cards */
+.stream{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.stream .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.stream input.name{background:none;border:none;border-bottom:1px dashed var(--line);color:var(--ink);font-family:var(--disp);font-weight:600;font-size:14px;width:60%;padding:2px 0}
+.stream input.name:focus{outline:none;border-bottom-color:var(--lantern)}
+.fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.field label{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.field input{width:100%;background:var(--night);border:1px solid var(--line);border-radius:7px;color:var(--ink);font-family:var(--mono);font-size:14px;padding:7px 8px}
+.field input:focus{outline:none;border-color:var(--lantern)}
+:focus-visible{outline:2px solid var(--lantern);outline-offset:2px}
+@media(min-width:560px){.stats{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">ROUTE SIN → CNX · V2</div>
+  <h1>Chiang Mai Runway <span class="thin">/ retirement projector</span></h1>
+  <div class="sub">All figures in SGD unless marked. Real = today's purchasing power after inflation.</div>
+</header>
+
+<div id="verdict">
+  <div class="lantern" id="lantern">🏮</div>
+  <div class="vlabel">Verdict at chosen retirement age</div>
+  <div class="vword" id="vword">—</div>
+  <div class="vdetail" id="vdetail"></div>
+</div>
+
+<div class="stats">
+  <div class="stat hero"><div class="k">Earliest retire age</div><div class="v" id="sEarly">—</div><div class="u" id="sEarlyU">at current pace</div></div>
+  <div class="stat"><div class="k">Portfolio (real)</div><div class="v" id="sReal">—</div><div class="u">S$ today's money</div></div>
+  <div class="stat"><div class="k">Target nest egg</div><div class="v" id="sTarget">—</div><div class="u">S$ real, incl. visa</div></div>
+  <div class="stat"><div class="k">Portfolio (nominal)</div><div class="v" id="sNom">—</div><div class="u">S$ at retirement</div></div>
+  <div class="stat"><div class="k">Safe monthly spend</div><div class="v" id="sSpend">—</div><div class="u">US$/mo from projection</div></div>
+  <div class="stat"><div class="k">Total invested/mo</div><div class="v" id="sTot">—</div><div class="u">across all streams</div></div>
+</div>
+
+<div class="chartwrap">
+  <div class="k">
+    <span class="legend"><span class="dot" style="background:var(--lantern)"></span>Nominal</span>
+    <span class="legend"><span class="dot" style="background:#6FA8DC"></span>Real</span>
+    <span class="legend"><span class="dot" style="background:var(--short)"></span>Target</span>
+    <span class="legend"><span class="dot" style="background:var(--safe)"></span>Earliest age</span>
+  </div>
+  <canvas id="chart" height="200"></canvas>
+</div>
+
+<section class="card">
+  <h2>Timeline</h2>
+  <div class="row"><label for="age">Current age</label><output id="ageO"></output></div>
+  <input type="range" id="age" min="25" max="55" step="1">
+  <div class="row"><label for="rAge">Retire at</label><output id="rAgeO"></output></div>
+  <input type="range" id="rAge" min="40" max="70" step="1">
+</section>
+
+<section class="card">
+  <h2>Investment Streams <button class="add" id="addStream">+ Add ticker</button></h2>
+  <div id="streams"></div>
+  <div class="note">Each stream: current value today, monthly top-up, and expected nominal return (net of fees). Add anything — D05, ES3, crypto, cash.</div>
+</section>
+
+<section class="card">
+  <h2>Chiang Mai Life</h2>
+  <div class="row"><label for="spend">Couple's spend (US$/mo, today)</label><output id="spendO"></output></div>
+  <input type="range" id="spend" min="800" max="4000" step="50">
+  <div class="hint">Frugal ~$1,200 · comfortable ~$1,800 · generous ~$2,500 (incl. health insurance)</div>
+  <div class="row"><label for="infl">Inflation %/yr</label><output id="inflO"></output></div>
+  <input type="range" id="infl" min="1" max="6" step="0.25">
+  <div class="row"><label for="swr">Withdrawal rate %/yr</label><output id="swrO"></output></div>
+  <input type="range" id="swr" min="2.5" max="5" step="0.25">
+  <div class="row"><label for="fx">SGD per USD</label><output id="fxO"></output></div>
+  <input type="range" id="fx" min="1.1" max="1.6" step="0.01">
+  <div class="note"><b>Visa buffer:</b> Thai retirement visa (Non-O, age 50+) needs 800k THB (~S$31k) in a Thai bank — added to the target automatically. Retiring before 50 needs another route (DTV etc.).</div>
+</section>
+
+<footer>
+  <button class="reset" id="reset">Reset to defaults</button><br><br>
+  planning estimate only · not financial advice · saved locally on this device
+</footer>
+
+<script>
+const LS='cnxRunwayV2';
+const DEF={
+  age:32,rAge:50,spend:1800,infl:2.5,swr:4,fx:1.34,
+  streams:[
+    {name:'VOO (me)',start:2240,mo:300,ret:8},
+    {name:'DBS digiPortfolio',start:15718,mo:300,ret:6},
+    {name:'VGT (wife)',start:0,mo:300,ret:9.5},
+    {name:'D05 + ES3 (SG)',start:3549,mo:0,ret:5.5},
+    {name:'US stocks (TSLA/PLTR/RLX)',start:280,mo:0,ret:8}
+  ]
+};
+const SLIDERS=['age','rAge','spend','infl','swr','fx'];
+const $=id=>document.getElementById(id);
+let state=null;
+
+function load(){
+  try{state=JSON.parse(localStorage.getItem(LS))}catch(e){}
+  if(!state||!Array.isArray(state.streams)) state=JSON.parse(JSON.stringify(DEF));
+  SLIDERS.forEach(k=>$(k).value=state[k]);
+  renderStreams();
+}
+function save(){try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}}
+function fmtK(v){return v>=1e6?(v/1e6).toFixed(2)+'M':Math.round(v/1000)+'k'}
+
+function renderStreams(){
+  const box=$('streams');box.innerHTML='';
+  state.streams.forEach((s,i)=>{
+    const d=document.createElement('div');d.className='stream';
+    d.innerHTML=`
+      <div class="head">
+        <input class="name" value="${s.name.replace(/"/g,'&quot;')}" data-i="${i}" data-f="name" aria-label="Stream name">
+        <button class="del" data-i="${i}" title="Remove">✕</button>
+      </div>
+      <div class="fields">
+        <div class="field"><label>Now S$</label><input type="number" inputmode="decimal" value="${s.start}" data-i="${i}" data-f="start" min="0" step="100"></div>
+        <div class="field"><label>S$/month</label><input type="number" inputmode="decimal" value="${s.mo}" data-i="${i}" data-f="mo" min="0" step="50"></div>
+        <div class="field"><label>Return %/yr</label><input type="number" inputmode="decimal" value="${s.ret}" data-i="${i}" data-f="ret" min="0" max="30" step="0.5"></div>
+      </div>`;
+    box.appendChild(d);
+  });
+  box.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      const i=+e.target.dataset.i,f=e.target.dataset.f;
+      state.streams[i][f]=f==='name'?e.target.value:(parseFloat(e.target.value)||0);
+      calc();
+    });
+  });
+  box.querySelectorAll('button.del').forEach(b=>{
+    b.addEventListener('click',e=>{
+      state.streams.splice(+e.target.dataset.i,1);
+      renderStreams();calc();
+    });
+  });
+}
+
+$('addStream').addEventListener('click',()=>{
+  state.streams.push({name:'New ticker',start:0,mo:300,ret:7});
+  renderStreams();calc();
+  const inputs=$('streams').querySelectorAll('input.name');
+  inputs[inputs.length-1].focus();
+});
+
+function simulate(maxAge){
+  // returns yearly arrays of nominal & real totals from current age to maxAge
+  const months=(maxAge-state.age)*12;
+  let bal=state.streams.map(s=>s.start);
+  const nom=[],real=[];
+  for(let m=0;m<=months;m++){
+    if(m>0) bal=bal.map((b,i)=>b*(1+state.streams[i].ret/100/12)+state.streams[i].mo);
+    if(m%12===0){
+      const t=bal.reduce((a,b)=>a+b,0);
+      nom.push(t);
+      real.push(t/Math.pow(1+state.infl/100,m/12));
+    }
+  }
+  return {nom,real};
+}
+
+function calc(){
+  SLIDERS.forEach(k=>state[k]=parseFloat($(k).value));
+  const g=state;
+  const visaSGD=800000*0.052;
+  const target=g.spend*12*g.fx/(g.swr/100)+visaSGD;
+
+  // long sim to find earliest age where real >= target (cap 80)
+  const longSim=simulate(80);
+  let earlyAge=null;
+  for(let y=0;y<longSim.real.length;y++){
+    if(longSim.real[y]>=target){earlyAge=g.age+y;break;}
+  }
+
+  // chosen-age sim for chart & verdict
+  const horizon=Math.max(g.rAge,earlyAge?Math.min(earlyAge+2,75):g.rAge);
+  const sim=simulate(horizon);
+  const idx=g.rAge-g.age;
+  const nom=sim.nom[idx],real=sim.real[idx];
+  const spendable=Math.max(0,(real-visaSGD))*(g.swr/100)/12/g.fx;
+  const totMo=g.streams.reduce((a,s)=>a+s.mo,0);
+  const startTot=g.streams.reduce((a,s)=>a+s.start,0);
+
+  $('sNom').textContent='S$'+fmtK(nom);
+  $('sReal').textContent='S$'+fmtK(real);
+  $('sTarget').textContent='S$'+fmtK(target);
+  $('sSpend').textContent='$'+Math.round(spendable).toLocaleString();
+  $('sTot').textContent='S$'+totMo.toLocaleString();
+  $('sEarly').textContent=earlyAge?earlyAge:'>80';
+  $('sEarlyU').textContent=earlyAge?('in '+(earlyAge-g.age)+' yrs · from S$'+fmtK(startTot)):'raise inputs';
+
+  $('ageO').textContent=g.age;
+  $('rAgeO').textContent=g.rAge+' ('+(g.rAge-g.age)+' yrs away)';
+  $('spendO').textContent='US$'+g.spend.toLocaleString();
+  $('inflO').textContent=g.infl+'%';
+  $('swrO').textContent=g.swr+'%';
+  $('fxO').textContent=g.fx.toFixed(2);
+
+  const ratio=real/target;
+  const vw=$('vword'),vd=$('vdetail'),lant=$('lantern');
+  lant.style.bottom=(8+Math.min(1,Math.max(0,ratio))*58)+'%';
+  const earlyTxt=earlyAge?(' Earliest full-target retirement: <b>age '+earlyAge+'</b>.'):' Target not reached by 80 at current pace.';
+  if(ratio>=1){
+    vw.textContent='Enough ✓';vw.className='vword safe';
+    vd.innerHTML='At '+g.rAge+': <b>S$'+fmtK(real)+'</b> real vs target <b>S$'+fmtK(target)+'</b> — surplus <b>S$'+fmtK(real-target)+'</b>.'+earlyTxt;
+  }else if(ratio>=0.8){
+    vw.textContent='Tight';vw.className='vword tight';
+    vd.innerHTML='At '+g.rAge+': <b>'+Math.round(ratio*100)+'%</b> of target, gap <b>S$'+fmtK(target-real)+'</b>.'+earlyTxt;
+  }else{
+    vw.textContent='Not yet';vw.className='vword short';
+    vd.innerHTML='At '+g.rAge+': only <b>'+Math.round(ratio*100)+'%</b> of <b>S$'+fmtK(target)+'</b>, gap <b>S$'+fmtK(target-real)+'</b>.'+earlyTxt;
+  }
+
+  drawChart(sim.nom,sim.real,target,g.age,earlyAge,g.rAge);
+  save();
+}
+
+function drawChart(nom,real,target,startAge,earlyAge,rAge){
+  const c=$('chart'),dpr=window.devicePixelRatio||1;
+  const W=c.clientWidth,H=200;
+  c.width=W*dpr;c.height=H*dpr;
+  const x=c.getContext('2d');x.scale(dpr,dpr);
+  x.clearRect(0,0,W,H);
+  const max=Math.max(target,...nom)*1.08;
+  const n=nom.length,padL=6,padR=6,padT=8,padB=18;
+  const px=i=>padL+(W-padL-padR)*(n>1?i/(n-1):0);
+  const py=v=>H-padB-(H-padT-padB)*(v/max);
+
+  x.strokeStyle='#E86A6A';x.setLineDash([5,5]);x.lineWidth=1.2;
+  x.beginPath();x.moveTo(padL,py(target));x.lineTo(W-padR,py(target));x.stroke();
+  x.setLineDash([]);
+
+  // earliest age marker
+  if(earlyAge!==null&&earlyAge-startAge<n){
+    const xi=px(earlyAge-startAge);
+    x.strokeStyle='#53C79E';x.lineWidth=1;x.setLineDash([2,4]);
+    x.beginPath();x.moveTo(xi,padT);x.lineTo(xi,H-padB);x.stroke();x.setLineDash([]);
+    x.fillStyle='#53C79E';x.font='10px IBM Plex Mono';
+    x.fillText(String(earlyAge),xi-8,padT+10);
+  }
+  // chosen retire age marker
+  const xr=px(rAge-startAge);
+  x.strokeStyle='#8B93B5';x.lineWidth=1;x.setLineDash([2,4]);
+  x.beginPath();x.moveTo(xr,padT);x.lineTo(xr,H-padB);x.stroke();x.setLineDash([]);
+
+  const grad=x.createLinearGradient(0,padT,0,H-padB);
+  grad.addColorStop(0,'rgba(242,180,65,.22)');grad.addColorStop(1,'rgba(242,180,65,0)');
+  x.beginPath();x.moveTo(px(0),py(nom[0]));
+  nom.forEach((v,i)=>x.lineTo(px(i),py(v)));
+  x.lineTo(px(n-1),H-padB);x.lineTo(px(0),H-padB);x.closePath();
+  x.fillStyle=grad;x.fill();
+
+  x.strokeStyle='#F2B441';x.lineWidth=2;
+  x.beginPath();nom.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.stroke();
+  x.strokeStyle='#6FA8DC';x.lineWidth=1.6;
+  x.beginPath();real.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.stroke();
+
+  x.fillStyle='#8B93B5';x.font='10px IBM Plex Mono';
+  const step=Math.max(1,Math.floor((n-1)/6));
+  for(let i=0;i<n;i+=step){x.fillText(startAge+i,px(i)-6,H-4);}
+}
+
+SLIDERS.forEach(k=>$(k).addEventListener('input',calc));
+$('reset').addEventListener('click',()=>{
+  state=JSON.parse(JSON.stringify(DEF));
+  SLIDERS.forEach(k=>$(k).value=state[k]);
+  renderStreams();calc();
+});
+window.addEventListener('resize',calc);
+load();calc();
+</script>
+</body>
+</html>
